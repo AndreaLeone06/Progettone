@@ -1,0 +1,41 @@
+<div class="crime-report-container">
+    <h2>Submit a Crime Report</h2>
+    <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
+      <fieldset formGroupName="utente">
+        <legend>User Information</legend>
+        <label for="id">User ID:</label>
+        <input id="id" formControlName="id" type="text" required />
+        
+        <label for="nome">First Name:</label>
+        <input id="nome" formControlName="nome" type="text" required />
+        
+        <label for="cognome">Last Name:</label>
+        <input id="cognome" formControlName="cognome" type="text" required />
+        
+        <label for="data_nascita">Date of Birth:</label>
+        <input id="data_nascita" formControlName="data_nascita" type="date" required />
+      </fieldset>
+  
+      <label for="dove">Location:</label>
+      <input id="dove" formControlName="dove" type="text" required />
+      
+      <label for="rating">Rating:</label>
+      <input id="rating" formControlName="rating" type="number" min="1" max="5" required />
+      
+      <label for="tipo_di_crimine">Crime Type:</label>
+      <input id="tipo_di_crimine" formControlName="tipo_di_crimine" type="text" required />
+  
+      <fieldset formGroupName="geometry">
+        <legend>Coordinates</legend>
+        <label for="coordinates">Coordinates:</label>
+        <input id="coordinates" formControlName="coordinates" type="text" required />
+      </fieldset>
+  
+      <button type="submit" [disabled]="reportForm.invalid">Submit</button>
+    </form>
+  
+    <div *ngIf="message" class="message">
+      {{ message }}
+    </div>
+  </div>
+  
