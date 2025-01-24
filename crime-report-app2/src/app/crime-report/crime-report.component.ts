@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 
@@ -9,66 +8,63 @@ import * as L from 'leaflet';
   styleUrls: ['./crime-report.component.css']
 })
 export class CrimeReportComponent implements OnInit {
-  reportForm: FormGroup;
-  message: string | null = null;
   map!: L.Map;
   marker!: L.Marker;
+  reportForm!: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
-    this.reportForm = this.fb.group({
-      utente: this.fb.group({
-        id: ['', Validators.required],
-        nome: ['', Validators.required],
-        cognome: ['', Validators.required],
-        data_nascita: ['', Validators.required],
-      }),
-      dove: ['', Validators.required],
-      rating: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
-      tipo_di_crimine: ['', Validators.required],
-      geometry: this.fb.group({
-        coordinates: ['', Validators.required]
-      })
-    });
-  }
+  constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.initMap();
+    this.initForm(); // Inizializza il form
+    this.initMap();  // Inizializza la mappa
+  }
+
+  initForm(): void {
+    this.reportForm = this.fb.group({
+      dove: ['', Validators.required],
+      rating: [null, [Validators.required, Validators.min(1), Validators.max(5)]],
+      tipo_di_crimine: ['', Validators.required]
+    });
   }
 
   initMap(): void {
-    this.map = L.map('map').setView([41.9028, 12.4964], 13); // Inizializza la mappa su Roma
+    this.map = L.map('map').setView([41.9028, 12.4964], 13); // Roma come centro predefinito
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+      maxZoom: 19,
     }).addTo(this.map);
 
-    this.map.on('click', (e: any) => {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
 
       if (this.marker) {
-        this.marker.setLatLng(e.latlng);
+        this.marker.setLatLng([lat, lng]);
       } else {
-        this.marker = L.marker(e.latlng).addTo(this.map);
+        this.marker = L.marker([lat, lng], {
+          icon: L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+          }),
+        }).addTo(this.map);
       }
 
-      // Aggiorna il form con le coordinate
-      this.reportForm.get('geometry.coordinates')?.setValue([lng, lat]);
+      // Aggiorna il valore del campo 'dove' con la posizione selezionata
+      this.reportForm.patchValue({ dove: `${lat}, ${lng}` });
     });
   }
 
-  submitReport() {
-    const reportData = this.reportForm.value;
-
-    this.http.post('http://localhost:5000/api/ins', reportData).subscribe({
-      next: (response: any) => {
-        this.message = 'Crime data inserted successfully!';
-        this.reportForm.reset();
-        if (this.marker) this.map.removeLayer(this.marker);
-      },
-      error: (error) => {
-        this.message = `Error: ${error.error.error || 'Failed to submit report.'}`;
+  submitReport(): void {
+    if (this.reportForm.valid) {
+      console.log('Crime Report:', this.reportForm.value);
+      alert('Crime report submitted successfully!');
+      this.reportForm.reset();
+      if (this.marker) {
+        this.map.removeLayer(this.marker);
+        this.marker = undefined!;
       }
-    });
+    } else {
+      alert('Please fill out all required fields.');
+    }
   }
 }

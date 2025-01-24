@@ -1,41 +1,59 @@
-<div class="crime-report-container">
-    <h2>Submit a Crime Report</h2>
-    <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
-      <fieldset formGroupName="utente">
-        <legend>User Information</legend>
-        <label for="id">User ID:</label>
-        <input id="id" formControlName="id" type="text" required />
-        
-        <label for="nome">First Name:</label>
-        <input id="nome" formControlName="nome" type="text" required />
-        
-        <label for="cognome">Last Name:</label>
-        <input id="cognome" formControlName="cognome" type="text" required />
-        
-        <label for="data_nascita">Date of Birth:</label>
-        <input id="data_nascita" formControlName="data_nascita" type="date" required />
+<div class="crime-report-container container mt-5">
+    <h2 class="text-center mb-4">Submit a Crime Report</h2>
+    <form [formGroup]="reportForm" (ngSubmit)="submitReport()" class="row g-3">
+      <div class="mb-3 col-12">
+        <label for="dove" class="form-label">Location:</label>
+        <input
+          id="dove"
+          formControlName="dove"
+          type="text"
+          class="form-control"
+          placeholder="Select a point on the map"
+          readonly
+        />
+      </div>
+  
+      <div class="mb-3 col-12">
+        <label for="rating" class="form-label">Rating:</label>
+        <input
+          id="rating"
+          formControlName="rating"
+          type="number"
+          class="form-control"
+          min="1"
+          max="5"
+          required
+        />
+      </div>
+      <div class="mb-3 col-12">
+        <label for="tipo_di_crimine" class="form-label">Crime Type:</label>
+        <input
+          id="tipo_di_crimine"
+          formControlName="tipo_di_crimine"
+          type="text"
+          class="form-control"
+          required
+        />
+      </div>
+  
+      <fieldset class="border p-3 rounded">
+        <legend class="w-auto px-2 text-primary">Select Location on Map</legend>
+        <div
+          id="map"
+          class="border"
+          style="height: 400px; margin-top: 10px;"
+        ></div>
       </fieldset>
   
-      <label for="dove">Location:</label>
-      <input id="dove" formControlName="dove" type="text" required />
-      
-      <label for="rating">Rating:</label>
-      <input id="rating" formControlName="rating" type="number" min="1" max="5" required />
-      
-      <label for="tipo_di_crimine">Crime Type:</label>
-      <input id="tipo_di_crimine" formControlName="tipo_di_crimine" type="text" required />
-  
-      <fieldset formGroupName="geometry">
-        <legend>Coordinates</legend>
-        <label for="coordinates">Coordinates:</label>
-        <input id="coordinates" formControlName="coordinates" type="text" required />
-      </fieldset>
-  
-      <button type="submit" [disabled]="reportForm.invalid">Submit</button>
+      <div class="col-12 text-center">
+        <button
+          type="submit"
+          class="btn btn-primary w-50"
+          [disabled]="reportForm.invalid"
+        >
+          Submit
+        </button>
+      </div>
     </form>
-  
-    <div *ngIf="message" class="message">
-      {{ message }}
     </div>
-  </div>
   

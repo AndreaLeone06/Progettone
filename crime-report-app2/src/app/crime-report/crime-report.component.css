@@ -1,4 +1,9 @@
-.crime-report-container {
+#map {
+    height: 400px;
+    width: 100%;
+    margin: 10px 0;
+  }
+  .crime-report-container {
     max-width: 600px;
     margin: auto;
   }
