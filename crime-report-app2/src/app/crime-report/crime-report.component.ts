@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import * as L from 'leaflet';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { CrimeReportService } from './services/crime-report.service';
+import * as L from 'leaflet';  // Importa Leaflet per la mappa
 
 @Component({
   selector: 'app-crime-report',
@@ -8,79 +9,93 @@ import * as L from 'leaflet';
   styleUrls: ['./crime-report.component.css']
 })
 export class CrimeReportComponent implements OnInit {
-  map!: L.Map;
-  marker!: L.Marker;
   reportForm!: FormGroup;
-  message: string = ''; // ✅ Aggiunto per gestire i messaggi di conferma o errore
-  rating: number = 0; // ✅ Valore numerico del rating
-  stars: number[] = [1, 2, 3, 4, 5]; // Array per generare le stelle
+  rating: number = 0;
+  map: any;
+  marker: any;
+  clusterGroup: any;  // Aggiungi il gruppo di marker
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private crimeService: CrimeReportService) {}
 
-  ngOnInit(): void {
-    this.initForm();
+  ngOnInit() {
+    this.reportForm = this.fb.group({
+      location: [''],
+      rating: [0],
+      description: [''],
+      crimeType: ['']  // Aggiungi il campo Tipo di Crimine
+    });
+
+    // Inizializza la mappa
     this.initMap();
   }
 
-  initForm(): void {
-    this.reportForm = this.fb.group({
-      dove: ['', Validators.required],
-      rating: [null, [Validators.required, Validators.min(0), Validators.max(5)]],
-      tipo_di_crimine: ['', Validators.required],
-      descrizione: ['', Validators.required]
-    });
-  }
-
   initMap(): void {
-    this.map = L.map('map').setView([41.9028, 12.4964], 13); // Roma come centro predefinito
+    // Inizializza la mappa **dopo** aver dichiarato il div "map"
+    this.map = L.map('map').setView([45.4642, 9.1900], 13);  // Coordinate di Milano
+
+    // Crea un gruppo di marker per il cluster
+    this.clusterGroup = L.layerGroup().addTo(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
+    // Imposta l'icona rossa per il marker
+    const redIcon = L.icon({
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-red.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34]
+    });
 
-      if (this.marker) {
-        this.marker.setLatLng([lat, lng]);
-      } else {
-        this.marker = L.marker([lat, lng], {
-          icon: L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-          }),
-        }).addTo(this.map);
-      }
+    // Inizialmente, posiziona il marker su Milano
+    this.marker = L.marker([45.4642, 9.1900], { icon: redIcon }).addTo(this.map);
 
-      this.reportForm.patchValue({ dove: `${lat}, ${lng}` });
+    // Imposta il comportamento del clic sulla mappa
+    this.map.on('click', (event: any) => {
+      const coords = event.latlng;
+      this.marker.setLatLng(coords); // Muovi il marker alla posizione cliccata
+      this.reportForm.patchValue({
+        location: `${coords.lat}, ${coords.lng}`  // Solo numeri senza prefissi
+      });
     });
   }
 
-  // Funzione per aggiornare il rating con stelle
-  setRating(star: number) {
-    if (this.rating === star) {
-      this.rating = star - 0.5; // Se clicca sulla stessa stella, assegna mezza stella
-    } else {
-      this.rating = star;
-    }
-    this.reportForm.patchValue({ rating: this.rating }); // Aggiorna il valore del form
+  setRating(star: number): void {
+    this.rating = star;
+    this.reportForm.patchValue({ rating: this.rating });
   }
 
-  submitReport(): void {
-    if (this.reportForm.valid) {
-      console.log('Crime Report:', this.reportForm.value);
-      this.message = 'Crime report submitted successfully!';
-      alert(this.message);
-      this.reportForm.reset();
-      this.rating = 0; // Resetta le stelle
-      if (this.marker) {
-        this.map.removeLayer(this.marker);
-        this.marker = undefined!;
-      }
-    } else {
-      this.message = 'Please fill out all required fields.';
-      alert(this.message);
+  submitReport() {
+    // Prima di inviare i dati, assicurati che ci sia un solo marker
+    if (this.marker) {
+      // Prepara i dati da inviare al server
+      const reportData = {
+        location: this.reportForm.value.location,
+        description: this.reportForm.value.description,
+        crimeType: this.reportForm.value.crimeType,
+        rating: this.reportForm.value.rating
+      };
+
+      // Invia la segnalazione al servizio
+      this.crimeService.inviaSegnalazione(reportData).subscribe({
+        next: (response: any) => {
+          console.log('Report inviato', response);
+          // Aggiungi il marker al cluster dopo aver inviato il report
+          const coords = this.reportForm.value.location.split(',').map(Number);
+          const redIcon = L.icon({
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+          });
+
+          this.clusterGroup.addLayer(L.marker(coords, { icon: redIcon }));
+        },
+        error: (err: any) => {
+          console.error('Errore:', err);
+        }
+      });
     }
   }
 }

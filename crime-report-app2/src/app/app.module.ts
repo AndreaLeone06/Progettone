@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CrimeReportComponent } from './crime-report/crime-report.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { CrimeReportService } from './crime-report/services/crime-report.service';
 
 @NgModule({
   declarations: [
@@ -13,11 +13,11 @@ import { CrimeReportComponent } from './crime-report/crime-report.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule,
+    FormsModule,
     ReactiveFormsModule,
     HttpClientModule
   ],
-  providers: [],
+  providers: [CrimeReportService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

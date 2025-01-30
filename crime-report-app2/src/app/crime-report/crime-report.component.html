@@ -1,58 +1,32 @@
-<div class="container mt-4">
+<div class="container">
   <h2>Segnala un crimine</h2>
-  <form [formGroup]="reportForm" (ngSubmit)="submitReport()" class="row g-3">
-    
-    <!-- Campo per la posizione -->
-    <div class="col-md-6">
-      <label for="dove" class="form-label">Dove</label>
-      <input type="text" id="dove" class="form-control" formControlName="dove" placeholder="Luogo del crimine" />
-      <div *ngIf="reportForm.get('dove')?.invalid && reportForm.get('dove')?.touched" class="text-danger mt-1">
-        Questo campo è obbligatorio.
-      </div>
-    </div>
-
-    <!-- Selezione stelle per il rating -->
-    <div class="col-md-6">
-      <label class="form-label">Rating</label>
-      <div class="rating">
-        <span *ngFor="let star of stars; let i = index" (click)="setRating(star)">
-          <i class="bi" [ngClass]="{'bi-star-fill': rating >= star, 'bi-star-half': rating === star - 0.5, 'bi-star': rating < star}"></i>
-        </span>
-      </div>
-      <input type="hidden" formControlName="rating" />
-    </div>
-
-    <!-- Campo per il tipo di crimine -->
-    <div class="col-md-6">
-      <label for="tipo_di_crimine" class="form-label">Tipo di Crimine</label>
-      <input type="text" id="tipo_di_crimine" class="form-control" formControlName="tipo_di_crimine" placeholder="Es. Furto, Aggressione..." />
-      <div *ngIf="reportForm.get('tipo_di_crimine')?.invalid && reportForm.get('tipo_di_crimine')?.touched" class="text-danger mt-1">
-        Questo campo è obbligatorio.
-      </div>
-    </div>
-
-    <!-- Campo per la descrizione -->
-    <div class="col-md-12">
-      <label for="descrizione" class="form-label">Descrizione</label>
-      <textarea id="descrizione" class="form-control" formControlName="descrizione" rows="3" placeholder="Descrivi cosa è successo"></textarea>
-      <div *ngIf="reportForm.get('descrizione')?.invalid && reportForm.get('descrizione')?.touched" class="text-danger mt-1">
-        Questo campo è obbligatorio.
-      </div>
-    </div>
-
-    <!-- Pulsante di invio -->
-    <div class="col-12">
-      <button type="submit" class="btn btn-primary" [disabled]="reportForm.invalid">
-        Invia Segnalazione
-      </button>
-    </div>
-  </form>
-
-  <!-- Messaggio di conferma -->
-  <div *ngIf="message" class="alert alert-info mt-4 text-center">
-    {{ message }}
-  </div>
-
+  
   <!-- Mappa -->
-  <div id="map" style="height: 400px; margin-top: 20px;"></div>
+  <div id="map"></div> <!-- Questo è il contenitore per la mappa -->
+
+  <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
+    <label>Posizione:</label>
+    <input type="text" formControlName="location" readonly />
+
+    <label>Tipo di Crimine:</label>
+    <select formControlName="crimeType">
+      <option value="">Seleziona tipo</option>
+      <option value="Furto">Furto</option>
+      <option value="Aggressione">Aggressione</option>
+      <option value="Vandalismo">Vandalismo</option>
+      <option value="Altro">Altro</option>
+    </select>
+
+    <label>Rating:</label>
+    <div class="stars">
+      <span *ngFor="let star of [1, 2, 3, 4, 5]" (click)="setRating(star)" [class.selected]="star <= rating">
+        ★
+      </span>
+    </div>
+
+    <label>Descrizione:</label>
+    <textarea formControlName="description"></textarea>
+
+    <button type="submit">Invia Segnalazione</button>
+  </form>
 </div>
