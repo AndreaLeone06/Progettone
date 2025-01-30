@@ -1,21 +1,15 @@
 <div class="container">
   <h2>Segnala un crimine</h2>
-  
+
   <!-- Mappa -->
-  <div id="map"></div> <!-- Questo è il contenitore per la mappa -->
+  <div id="map" style="height: 400px;"></div> <!-- Contenitore per la mappa -->
 
   <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
     <label>Posizione:</label>
-    <input type="text" formControlName="location" readonly />
+    <input type="text" formControlName="location" readonly /> <!-- Solo indirizzo senza lat/lng visibile -->
 
     <label>Tipo di Crimine:</label>
-    <select formControlName="crimeType">
-      <option value="">Seleziona tipo</option>
-      <option value="Furto">Furto</option>
-      <option value="Aggressione">Aggressione</option>
-      <option value="Vandalismo">Vandalismo</option>
-      <option value="Altro">Altro</option>
-    </select>
+    <input type="text" formControlName="crimeType" placeholder="Es: Furto, Aggressione, Vandalismo, ecc." />
 
     <label>Rating:</label>
     <div class="stars">

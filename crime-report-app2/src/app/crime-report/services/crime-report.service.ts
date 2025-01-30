@@ -6,11 +6,13 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class CrimeReportService {
-  private apiUrl = "http://127.0.0.1:5000/api/ins";  // Sostituisci con l'URL della tua API
 
-  constructor(private http: HttpClient) {}
+  private apiUrl = 'https://41000-andrealeone0-progettone-ayl7qrlakgi.ws-eu117.gitpod.io/api/ins'; // Sostituisci con l'URL della tua API
 
-  inviaSegnalazione(data: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, data);  // Modifica questa parte secondo le tue necessità
+  constructor(private http: HttpClient) { }
+
+  // Metodo per inviare una segnalazione al server
+  submitReport(reportData: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, reportData);
   }
 }

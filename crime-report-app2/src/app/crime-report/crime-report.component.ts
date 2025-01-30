@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { CrimeReportService } from './services/crime-report.service';
-import * as L from 'leaflet';  // Importa Leaflet per la mappa
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CrimeReportService } from '././services/crime-report.service';  // Assicurati che il percorso del servizio sia corretto
+import * as L from 'leaflet'; // Per usare Leaflet, se lo stai utilizzando
 
 @Component({
   selector: 'app-crime-report',
@@ -9,93 +9,70 @@ import * as L from 'leaflet';  // Importa Leaflet per la mappa
   styleUrls: ['./crime-report.component.css']
 })
 export class CrimeReportComponent implements OnInit {
-  reportForm!: FormGroup;
-  rating: number = 0;
+  reportForm: FormGroup;
+  rating = 0;
   map: any;
   marker: any;
-  clusterGroup: any;  // Aggiungi il gruppo di marker
 
-  constructor(private fb: FormBuilder, private crimeService: CrimeReportService) {}
-
-  ngOnInit() {
+  constructor(private fb: FormBuilder, private crimeReportService: CrimeReportService) {
     this.reportForm = this.fb.group({
-      location: [''],
-      rating: [0],
-      description: [''],
-      crimeType: ['']  // Aggiungi il campo Tipo di Crimine
+      location: ['', Validators.required],
+      crimeType: ['', Validators.required],
+      description: ['', Validators.required]
     });
-
-    // Inizializza la mappa
-    this.initMap();
   }
 
-  initMap(): void {
-    // Inizializza la mappa **dopo** aver dichiarato il div "map"
-    this.map = L.map('map').setView([45.4642, 9.1900], 13);  // Coordinate di Milano
+  ngOnInit(): void {
+    // Inizializza la mappa
+    this.map = L.map('map').setView([45.4642, 9.19], 13); // Milano come esempio
 
-    // Crea un gruppo di marker per il cluster
-    this.clusterGroup = L.layerGroup().addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(this.map);
+    // Aggiungi un marker per la posizione
+    this.marker = L.marker([45.4642, 9.19]).addTo(this.map);
 
-    // Imposta l'icona rossa per il marker
-    const redIcon = L.icon({
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-red.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34]
+    // Quando si clicca sulla mappa, sposta il marker e aggiorna la posizione
+    this.map.on('click', (e: any) => {
+      const latLng = e.latlng;
+      this.marker.setLatLng(latLng);
+      
+      // Usa un servizio di geocoding per ottenere un indirizzo
+      this.updateLocation(latLng);
     });
+  }
 
-    // Inizialmente, posiziona il marker su Milano
-    this.marker = L.marker([45.4642, 9.1900], { icon: redIcon }).addTo(this.map);
+  // Funzione per ottenere l'indirizzo dalla latitudine e longitudine
+  updateLocation(latLng: any): void {
+    // Supponiamo che tu abbia una funzione di geocoding che converte le coordinate in un indirizzo
+    // Se usi Leaflet, puoi usare un plugin come 'leaflet-geocoder' o un servizio come Nominatim (OpenStreetMap)
+    const lat = latLng.lat.toFixed(6);
+    const lng = latLng.lng.toFixed(6);
 
-    // Imposta il comportamento del clic sulla mappa
-    this.map.on('click', (event: any) => {
-      const coords = event.latlng;
-      this.marker.setLatLng(coords); // Muovi il marker alla posizione cliccata
-      this.reportForm.patchValue({
-        location: `${coords.lat}, ${coords.lng}`  // Solo numeri senza prefissi
-      });
+    // Qui puoi usare un geocoding per ottenere l'indirizzo
+    // Per ora, mettiamo semplicemente lat/lng come esempio
+    this.reportForm.patchValue({
+      location: `${lat}, ${lng}` // Modifica se desideri un formato di indirizzo
     });
   }
 
   setRating(star: number): void {
     this.rating = star;
-    this.reportForm.patchValue({ rating: this.rating });
   }
 
-  submitReport() {
-    // Prima di inviare i dati, assicurati che ci sia un solo marker
-    if (this.marker) {
-      // Prepara i dati da inviare al server
-      const reportData = {
-        location: this.reportForm.value.location,
-        description: this.reportForm.value.description,
-        crimeType: this.reportForm.value.crimeType,
-        rating: this.reportForm.value.rating
-      };
-
-      // Invia la segnalazione al servizio
-      this.crimeService.inviaSegnalazione(reportData).subscribe({
-        next: (response: any) => {
-          console.log('Report inviato', response);
-          // Aggiungi il marker al cluster dopo aver inviato il report
-          const coords = this.reportForm.value.location.split(',').map(Number);
-          const redIcon = L.icon({
-            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-red.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34]
-          });
-
-          this.clusterGroup.addLayer(L.marker(coords, { icon: redIcon }));
-        },
-        error: (err: any) => {
-          console.error('Errore:', err);
-        }
-      });
+  submitReport(): void {
+    if (this.reportForm.invalid) {
+      return;
     }
+
+    const reportData = {
+      utente: { nome: '', cognome: '', data_nascita: '' }, // Lasciamo vuoti i dati dell'utente
+      dove: this.reportForm.value.location,
+      rating: this.rating,
+      tipo_di_crimine: this.reportForm.value.crimeType,
+      geometry: { type: 'Point', coordinates: [parseFloat(this.marker.getLatLng().lat.toFixed(6)), parseFloat(this.marker.getLatLng().lng.toFixed(6))] },
+      description: this.reportForm.value.description
+    };
+    console.log(reportData);
+    this.crimeReportService.submitReport(reportData);
   }
 }

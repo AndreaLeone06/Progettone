@@ -15,7 +15,7 @@ app = Flask(__name__)
 #permette di fare richieste da qualsiasi origine
 CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
-uri = "mongodb+srv://classeIntera:UFltAmk9TEVZtmJN@safezone.lrtrk.mongodb.net/?retryWrites=true&w=majority&appName=safezone"
+uri = "mongodb+srv://classeIntera:loto@safezone.lrtrk.mongodb.net/?retryWrites=true&w=majority&appName=safezone"
 client = MongoClient(uri, server_api=ServerApi('1'))
 database = client["mappaUtenti"]
 collection = database["segnalazioni"]
@@ -66,4 +66,4 @@ def ins_dati():
     return jsonify({"message": "Crime data inserted successfully"}), 201
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=41000, debug=True)
