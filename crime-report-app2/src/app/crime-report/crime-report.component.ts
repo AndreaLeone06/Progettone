@@ -11,19 +11,23 @@ export class CrimeReportComponent implements OnInit {
   map!: L.Map;
   marker!: L.Marker;
   reportForm!: FormGroup;
+  message: string = ''; // ✅ Aggiunto per gestire i messaggi di conferma o errore
+  rating: number = 0; // ✅ Valore numerico del rating
+  stars: number[] = [1, 2, 3, 4, 5]; // Array per generare le stelle
 
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.initForm(); // Inizializza il form
-    this.initMap();  // Inizializza la mappa
+    this.initForm();
+    this.initMap();
   }
 
   initForm(): void {
     this.reportForm = this.fb.group({
       dove: ['', Validators.required],
-      rating: [null, [Validators.required, Validators.min(1), Validators.max(5)]],
-      tipo_di_crimine: ['', Validators.required]
+      rating: [null, [Validators.required, Validators.min(0), Validators.max(5)]],
+      tipo_di_crimine: ['', Validators.required],
+      descrizione: ['', Validators.required]
     });
   }
 
@@ -49,22 +53,34 @@ export class CrimeReportComponent implements OnInit {
         }).addTo(this.map);
       }
 
-      // Aggiorna il valore del campo 'dove' con la posizione selezionata
       this.reportForm.patchValue({ dove: `${lat}, ${lng}` });
     });
+  }
+
+  // Funzione per aggiornare il rating con stelle
+  setRating(star: number) {
+    if (this.rating === star) {
+      this.rating = star - 0.5; // Se clicca sulla stessa stella, assegna mezza stella
+    } else {
+      this.rating = star;
+    }
+    this.reportForm.patchValue({ rating: this.rating }); // Aggiorna il valore del form
   }
 
   submitReport(): void {
     if (this.reportForm.valid) {
       console.log('Crime Report:', this.reportForm.value);
-      alert('Crime report submitted successfully!');
+      this.message = 'Crime report submitted successfully!';
+      alert(this.message);
       this.reportForm.reset();
+      this.rating = 0; // Resetta le stelle
       if (this.marker) {
         this.map.removeLayer(this.marker);
         this.marker = undefined!;
       }
     } else {
-      alert('Please fill out all required fields.');
+      this.message = 'Please fill out all required fields.';
+      alert(this.message);
     }
   }
 }
