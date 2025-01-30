@@ -24,7 +24,9 @@ collection = database["segnalazioni"]
 @app.route('/api/ins', methods=['POST'])
 def ins_dati():
     # Trasformiamo i dati in json
+    print("ciao")
     data = request.get_json()
+    print(data)
     # Prendiamo i parametri
     data_inserimento = datetime.now()
     utente = data.get('utente', {})
@@ -32,28 +34,27 @@ def ins_dati():
     rating = data.get('rating')
     tipo_di_crimine = data.get('tipo_di_crimine')
     geometry = data.get('geometry', {})
+    descrizione= data.get('description')
     
     # Controllo dei campi obbligatori
     if not all([utente, dove, rating, tipo_di_crimine, geometry]):
         return jsonify({"error": "Missing required fields"}), 400
     
     # Verifica la struttura
-    if not all(key in utente for key in ['id', 'nome', 'cognome', 'data_nascita']):
+    if not all(key in utente for key in [ 'nome', 'cognome', 'data_nascita']):
         return jsonify({"error": "Invalid user structure"}), 400
-    
-    if collection.find_one({"utente.id": utente['id']}):
-        return jsonify({"error": "User ID already exists"}), 409
     
     new_crime = {
         "data_inserimento": data_inserimento,
         "utente": {
-            "nome": "",
-            "cognome": "",
-            "data_nascita": ""
+            "nome": "pino",
+            "cognome": "gino",
+            "data_nascita": "1990-01-02"
         },
-        "dove": dove,
-        "rating": rating,
-        "tipo_di_crimine": tipo_di_crimine,
+        "dove": "via roma ,Milano",
+        "rating": int(rating),
+        "tipo_di_crimine": str(tipo_di_crimine),
+        "Descrizione": str(descrizione),
         "geometry": {
             "type": "Point",
             "coordinates": geometry.get('coordinates')

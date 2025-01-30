@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CrimeReportService } from '././services/crime-report.service';  // Assicurati che il percorso del servizio sia corretto
+import { CrimeReportService } from './services/crime-report.service';  // Assicurati che il percorso del servizio sia corretto
 import * as L from 'leaflet'; // Per usare Leaflet, se lo stai utilizzando
 
 @Component({
@@ -61,18 +61,36 @@ export class CrimeReportComponent implements OnInit {
 
   submitReport(): void {
     if (this.reportForm.invalid) {
+      console.error('Modulo non valido!');
       return;
     }
 
     const reportData = {
       utente: { nome: '', cognome: '', data_nascita: '' }, // Lasciamo vuoti i dati dell'utente
-      dove: this.reportForm.value.location,
+      dove: this.reportForm.value.location, // Posizione
       rating: this.rating,
       tipo_di_crimine: this.reportForm.value.crimeType,
-      geometry: { type: 'Point', coordinates: [parseFloat(this.marker.getLatLng().lat.toFixed(6)), parseFloat(this.marker.getLatLng().lng.toFixed(6))] },
+      geometry: { 
+        type: 'Point', 
+        coordinates: [
+          parseFloat(this.marker.getLatLng().lat.toFixed(6)), 
+          parseFloat(this.marker.getLatLng().lng.toFixed(6))
+        ] 
+      },
       description: this.reportForm.value.description
     };
-    console.log(reportData);
-    this.crimeReportService.submitReport(reportData);
+    
+    console.log('Dati della segnalazione:', reportData); // Verifica i dati prima dell'invio
+
+    this.crimeReportService.submitReport(reportData).subscribe(
+      (response) => {
+        console.log('Segnalazione inviata con successo:', response);
+        // Puoi aggiungere una notifica di successo qui
+      },
+      (error) => {
+        console.error('Errore durante l\'invio della segnalazione:', error);
+        // Puoi aggiungere una notifica di errore qui
+      }
+    );
   }
 }

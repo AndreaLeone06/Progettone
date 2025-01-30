@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -13,6 +13,10 @@ export class CrimeReportService {
 
   // Metodo per inviare una segnalazione al server
   submitReport(reportData: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, reportData);
+    return this.http.post(this.apiUrl, reportData, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    });
   }
 }
